@@ -41,7 +41,11 @@ void setup() {
   rf95.setFrequency(frequency);
   // rf95.setTxPower(14, false);
 
-  // Alert that setup has completed
+  // First reading is always garbage
+  if (!bmp.performReading()) {
+    SerialUSB.println("> BMP reading failed!");
+  }
+
   SerialUSB.println("> Elevator: Setup complete.");
   if (debug) {
     digitalWrite(STATUS, HIGH);
@@ -66,7 +70,7 @@ void loop() {
   if (debug) {
     SerialUSB.print("> Elevator: transmitting (");
     SerialUSB.print(pres);
-    SerialUSB.print("f , ");
+    SerialUSB.print("f, ");
     SerialUSB.print(temp);
     SerialUSB.println("f)");
     // digitalWrite(PIN_LED_TXL, LOW); // LED is backwards from factory
@@ -80,5 +84,5 @@ void loop() {
   // if (debug) { digitalWrite(PIN_LED_TXL, HIGH); }
   digitalWrite(PIN_LED_TXL, HIGH);
 
-  delay(1000);
+  delay(100);
 }

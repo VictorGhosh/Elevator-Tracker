@@ -29,7 +29,7 @@ void setup() {
   SerialUSB.println("> Lobby: Begin setup...");
 
   if (!bmp.begin_SPI(CS, SCK, MISO, MOSI)) {
-    SerialUSB.println("> Lobby: Radio setup failed!");
+    SerialUSB.println("> Lobby: BMP setup failed!");
   }
 
   if (rf95.init() == false) {
