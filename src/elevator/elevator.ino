@@ -16,6 +16,8 @@ Adafruit_BMP3XX bmp;
 RH_RF95 rf95(12, 6);
 
 bool debug = false;
+int readings = 8;
+
 int STATUS = 13;
 float frequency = 921.2;
 
@@ -59,7 +61,7 @@ void loop() {
     SerialUSB.println("> Elevator: BMP reading failed!");
   }
 
-  float pres = bmp.readPressure();
+  float pres = getPressure(readings);
   float temp = bmp.readTemperature();
 
   uint8_t buf[sizeof(float) * 2];
@@ -85,4 +87,15 @@ void loop() {
   digitalWrite(PIN_LED_TXL, HIGH);
 
   delay(100);
+}
+
+float getPressure(int r) {
+  float sum = 0;
+  for (int i = 0; i < r; i++) {
+    if (!bmp.performReading()) {
+      SerialUSB.println("> BMP reading failed!");
+    }
+    sum += bmp.readPressure();
+  }
+  return sum / r;
 }

@@ -1,0 +1,57 @@
+5/29 - Elevator in backpack lobby also with me - No calibration offset
+
+Floor 1:
+--------108--------
+Lobby: 100750.63 Elevator: 100749.55
+Pressure diff: 1.08
+Lobby average: 100749.86 Elevator average: 100750.46
+Average pressure difference: -0.58
+
+Floor 2: Stais/Base
+--------188--------
+Lobby: 100718.51 Elevator: 100719.35
+Pressure diff: -0.84
+Lobby average: 100719.39 Elevator average: 100720.36
+Average pressure difference: -0.98
+
+Floor 2: Elevator
+--------125--------
+Lobby: 100704.14 Elevator: 100702.82
+Pressure diff: 1.32
+Lobby average: 100703.13 Elevator average: 100703.86
+Average pressure difference: -0.66
+
+Floor 3:
+--------219--------
+Lobby: 100673.59 Elevator: 100674.00
+Pressure diff: -0.41
+Lobby average: 100673.68 Elevator average: 100673.80
+Average pressure difference: -0.15
+
+Floor 4:
+--------278--------
+Lobby: 100633.92 Elevator: 100636.97
+Pressure diff: -3.05
+Lobby average: 100633.84 Elevator average: 100635.76
+Average pressure difference: -1.87
+
+Floor 5:
+--------257--------
+Lobby: 100596.18 Elevator: 100598.88
+Pressure diff: -2.70
+Lobby average: 100595.53 Elevator average: 100598.99
+Average pressure difference: -3.49
+
+Floor 6:
+--------506--------
+Lobby: 100563.62 Elevator: 100571.92
+Pressure diff: -8.30
+Lobby average: 100564.75 Elevator average: 100571.55
+Average pressure difference: -7.02
+
+Floor 7:
+--------513--------
+Lobby: 100531.77 Elevator: 100538.68
+Pressure diff: -6.91
+Lobby average: 100530.19 Elevator average: 100536.33
+Average pressure difference: -6.11

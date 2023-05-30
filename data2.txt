@@ -1,0 +1,57 @@
+5/30 - Elevator on floor 5 by stairs
+
+Floor 1:
+--------102--------
+Lobby: 101027.70 Elevator: 100879.83
+Pressure diff: 147.87
+Lobby average: 101028.84 Elevator average: 100879.36
+Average pressure difference: 149.45
+Current floor estimate: 1
+
+Floor 2:
+--------89--------
+Lobby: 100991.92 Elevator: 100879.62
+Pressure diff: 112.30
+Lobby average: 100989.53 Elevator average: 100880.54
+Average pressure difference: 108.99
+Current floor estimate: 2
+
+Floor 3:
+--------107--------
+Lobby: 100950.05 Elevator: 100884.30
+Pressure diff: 65.74
+Lobby average: 100948.99 Elevator average: 100882.68
+Average pressure difference: 66.28
+Current floor estimate: 3
+
+Floor 4:
+--------182--------
+Lobby: 100909.24 Elevator: 100882.27
+Pressure diff: 26.97
+Lobby average: 100910.10 Elevator average: 100883.65
+Average pressure difference: 26.40
+Current floor estimate: 4
+
+Floor 5:
+--------171--------
+Lobby: 100877.44 Elevator: 100883.69
+Pressure diff: -6.25
+Lobby average: 100877.13 Elevator average: 100883.80
+Average pressure difference: -6.64
+Current floor estimate: 5
+
+Floor 6:
+--------141--------
+Lobby: 100836.47 Elevator: 100884.77
+Pressure diff: -48.30
+Lobby average: 100836.62 Elevator average: 100884.23
+Average pressure difference: -47.62
+Current floor estimate: 7
+
+Floor 7:
+--------149--------
+Lobby: 100796.72 Elevator: 100884.81
+Pressure diff: -88.09
+Lobby average: 100795.84 Elevator average: 100882.37
+Average pressure difference: -86.54
+Current floor estimate: 7

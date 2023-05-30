@@ -17,7 +17,7 @@ int readDelay = 200; // Reading delay (ms). Only with rfMode off
 
 int STATUS = 13;
 float frequency = 921.2;
-float calibrateNum = 7.53;
+float calibrateNum = 11.9;
 
 float thisSumPres = 0;
 float recvSumPres = 0;
