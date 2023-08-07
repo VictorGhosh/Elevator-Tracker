@@ -19,11 +19,16 @@ RH_RF95 rf95(12, 6);
 
 uint8_t i2cAddress = BMA400_I2C_ADDRESS_DEFAULT; // 0x14
 
-bool debug = false;
-int readings = 4;
+// Options
+bool debug = true;
+int readings = 4; // Readings per pressure data point
+float upperMoveBound = 1.02; // Upper normal bound for accelerometer when still
+float lowerMoveBound = 0.96; // Lower normal bound for accelerometer when still
+long maxWait = 60000; // Max time between packets sent in milliseconds
 
-int STATUS = 13;
-float frequency = 921.2;
+long prevPacket = 0; // Time last packet was sent in milliseconds
+float frequency = 921.2; // Set broadcast frequency
+
 
 void setup() {
   SerialUSB.begin(115200);
@@ -65,45 +70,46 @@ void setup() {
   }
 
   SerialUSB.println("> Elevator: Setup complete.");
-  if (debug) {
-    digitalWrite(STATUS, HIGH);
-    delay(500);
-    digitalWrite(STATUS, LOW);
-  }
 }
+
 
 void loop() {
   float pres = getPressure(readings);
-  // float acc = getAcceleration();
-  bma.getSensorData();
-  float accelX = bma.data.accelX;
-  float accelY = bma.data.accelY;
-  float accelZ = bma.data.accelZ;
+  float acc = getAcceleration();
 
-  uint8_t buf[sizeof(float) * 4];
-  ::memcpy(buf, &pres, sizeof(float));
-  ::memcpy(buf + sizeof(float), &accelX, sizeof(float));
-  ::memcpy(buf + sizeof(float) * 2, &accelY, sizeof(float));
-  ::memcpy(buf + sizeof(float) * 3, &accelZ, sizeof(float));
+  if (acc > upperMoveBound || acc < lowerMoveBound || millis() - prevPacket > maxWait) {
+    prevPacket = millis();
 
+    float accelX = bma.data.accelX;
+    float accelY = bma.data.accelY;
+    float accelZ = bma.data.accelZ;
 
-  if (debug) {
-    SerialUSB.print("> Elevator: transmitting (");
-    SerialUSB.print(pres);
-    SerialUSB.print("f, ");
-    SerialUSB.print(accelX);
-    SerialUSB.print("f, ");
-    SerialUSB.print(accelY);
-    SerialUSB.print("f, ");
-    SerialUSB.print(accelZ);
-    SerialUSB.println("f)");
+    uint8_t buf[sizeof(float) * 4];
+    ::memcpy(buf, &pres, sizeof(float));
+    ::memcpy(buf + sizeof(float), &accelX, sizeof(float));
+    ::memcpy(buf + sizeof(float) * 2, &accelY, sizeof(float));
+    ::memcpy(buf + sizeof(float) * 3, &accelZ, sizeof(float));
+
+    rf95.send(buf, sizeof(buf));
+    rf95.waitPacketSent();
+  
+    if (debug) {
+      SerialUSB.print("> Elevator: transmitting (");
+      SerialUSB.print(pres);
+      SerialUSB.print("f, ");
+      SerialUSB.print(accelX);
+      SerialUSB.print("f, ");
+      SerialUSB.print(accelY);
+      SerialUSB.print("f, ");
+      SerialUSB.print(accelZ);
+      SerialUSB.print("f) Total: ");
+      SerialUSB.println(getAcceleration());
+    }
   }
-
-  rf95.send(buf, sizeof(buf));
-  rf95.waitPacketSent();
 
   delay(500);
 }
+
 
 float getPressure(int r) {
   float sum = 0;
@@ -115,6 +121,7 @@ float getPressure(int r) {
   }
   return sum / r;
 }
+
 
 float getAcceleration() {
   bma.getSensorData();
