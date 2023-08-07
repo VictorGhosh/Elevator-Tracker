@@ -20,7 +20,7 @@ RH_RF95 rf95(12, 6);
 uint8_t i2cAddress = BMA400_I2C_ADDRESS_DEFAULT; // 0x14
 
 bool debug = false;
-int readings = 8;
+int readings = 4;
 
 int STATUS = 13;
 float frequency = 921.2;
@@ -74,17 +74,28 @@ void setup() {
 
 void loop() {
   float pres = getPressure(readings);
-  float acc = getAcceleration();
+  // float acc = getAcceleration();
+  bma.getSensorData();
+  float accelX = bma.data.accelX;
+  float accelY = bma.data.accelY;
+  float accelZ = bma.data.accelZ;
 
-  uint8_t buf[sizeof(float) * 2];
+  uint8_t buf[sizeof(float) * 4];
   ::memcpy(buf, &pres, sizeof(float));
-  ::memcpy(buf + sizeof(float), &acc, sizeof(float));
+  ::memcpy(buf + sizeof(float), &accelX, sizeof(float));
+  ::memcpy(buf + sizeof(float) * 2, &accelY, sizeof(float));
+  ::memcpy(buf + sizeof(float) * 3, &accelZ, sizeof(float));
+
 
   if (debug) {
     SerialUSB.print("> Elevator: transmitting (");
     SerialUSB.print(pres);
     SerialUSB.print("f, ");
-    SerialUSB.print(acc);
+    SerialUSB.print(accelX);
+    SerialUSB.print("f, ");
+    SerialUSB.print(accelY);
+    SerialUSB.print("f, ");
+    SerialUSB.print(accelZ);
     SerialUSB.println("f)");
   }
 

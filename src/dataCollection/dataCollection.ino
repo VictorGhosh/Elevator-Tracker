@@ -13,8 +13,6 @@
 Adafruit_BMP3XX bmp;
 RH_RF95 rf95(12, 6);
 
-bool debug = false;
-
 float frequency = 921.2;
 
 int readings = 16;
@@ -24,19 +22,16 @@ long prevPacket = 0;
 
 void setup() {
   SerialUSB.begin(115200);
-  if (debug) {
-    while (!SerialUSB);
-    SerialUSB.println("> Begin setup...");
-  }
+  while (!SerialUSB);
+
+  SerialUSB.println("> Begin setup...");
 
   if (!bmp.begin_SPI(CS, SCK, MISO, MOSI)) {
     SerialUSB.println("> BMP setup failed!");
-    return;
   }
 
   if (rf95.init() == false) {
     SerialUSB.println("> Radio setup failed!");
-    return;
   }
 
   bmp.setTemperatureOversampling(BMP3_OVERSAMPLING_8X);
@@ -91,7 +86,7 @@ void loop() {
 
     float lobbyPressure = getPressure(readings);
 
-    SerialUSB.print(millis(), 4);
+    SerialUSB.print(millis());
     SerialUSB.print(" ");
     SerialUSB.print(lobbyPressure);
     SerialUSB.print(" ");
