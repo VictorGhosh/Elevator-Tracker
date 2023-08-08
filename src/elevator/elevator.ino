@@ -20,7 +20,7 @@ RH_RF95 rf95(12, 6);
 uint8_t i2cAddress = BMA400_I2C_ADDRESS_DEFAULT; // 0x14
 
 // Options
-bool debug = true;
+bool debug = false;
 int readings = 4; // Readings per pressure data point
 float upperMoveBound = 1.02; // Upper normal bound for accelerometer when still
 float lowerMoveBound = 0.96; // Lower normal bound for accelerometer when still
