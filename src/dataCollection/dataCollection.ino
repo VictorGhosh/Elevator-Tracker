@@ -2,37 +2,59 @@
  * See README.txt for wiring.
  */
 
+#include <Wire.h>
+#include <SPI.h>
+#include <Adafruit_Sensor.h>
 #include "Adafruit_BMP3XX.h"
+#include "SparkFun_BMA400_Arduino_Library.h"
 #include <RH_RF95.h>
 
-#define SCK 3   // SCK: Override due to radio problem
-#define MOSI 4  // SDA: Override due to radio problem
 #define CS 9
-#define STATUS 13
+#define SCK 3 // SCK: Override due to radio problem
+#define MOSI 4 // SDA: Override due to radio problem
 
 Adafruit_BMP3XX bmp;
+BMA400 bma;
 RH_RF95 rf95(12, 6);
 
-float frequency = 921.2;
+uint8_t i2cAddress = BMA400_I2C_ADDRESS_DEFAULT; // 0x14
 
-int readings = 16;
+// Options
+bool debug = false;
+int readings = 4; // Readings per pressure data point
+float upperMoveBound = 1.02; // Upper normal bound for accelerometer when still
+float lowerMoveBound = 0.96; // Lower normal bound for accelerometer when still
+long maxWait = 60000; // Max time between packets sent in milliseconds
 
-// Time from last recived packet
-long prevPacket = 0;
+long prevPacket = 0; // Time last packet was sent in milliseconds
+float frequency = 921.2; // Set broadcast frequency
+
 
 void setup() {
   SerialUSB.begin(115200);
-  while (!SerialUSB);
+  if (debug) { while(!SerialUSB); }
+  
+  SerialUSB.println("> Elevator: Begin setup...");
 
-  SerialUSB.println("> Begin setup...");
+  Wire.begin();
 
   if (!bmp.begin_SPI(CS, SCK, MISO, MOSI)) {
-    SerialUSB.println("> BMP setup failed!");
+    SerialUSB.println("> Elevator: BMP setup failed!");
+    return;
   }
 
-  if (rf95.init() == false) {
-    SerialUSB.println("> Radio setup failed!");
+  if (rf95.init() == false){
+    SerialUSB.println("> Elevator: Radio setup failed!");
+    return;
   }
+
+  if (bma.beginI2C(i2cAddress) != BMA400_OK) {
+    SerialUSB.println("> Elevator: Accelerometer setup failed!");
+    return;
+  }
+
+  // This is a real thing but I dont know how to make it work.
+  // bma.setAutoLowPower(bma400_auto_lp_conf *config)
 
   bmp.setTemperatureOversampling(BMP3_OVERSAMPLING_8X);
   bmp.setPressureOversampling(BMP3_OVERSAMPLING_4X);
@@ -44,89 +66,60 @@ void setup() {
 
   // First reading is always garbage
   if (!bmp.performReading()) {
-    SerialUSB.println("> Lobby: BMP reading failed!");
+    SerialUSB.println("> BMP reading failed!");
   }
 
-  SerialUSB.println("> Setup complete.");
+  SerialUSB.println("> Elevator: Setup complete.");
 }
+
 
 void loop() {
-  float elevatorPressure;
-  float elevatorAccelX;
-  float elevatorAccelY;
-  float elevatorAccelZ;
+  float pres = getPressure(readings);
+  float acc = getAcceleration();
 
-  if (rf95.available()) {
-    uint8_t buf[RH_RF95_MAX_MESSAGE_LEN];
-    uint8_t len = sizeof(buf);
+  prevPacket = millis();
 
-    if (rf95.recv(buf, &len)) {
-      // RX LED means we are activly recieving packets
-      digitalWrite(PIN_LED_RXL, LOW);  // This LED is backwards from factory
-      prevPacket = millis();
+  float accelX = bma.data.accelX;
+  float accelY = bma.data.accelY;
+  float accelZ = bma.data.accelZ;
 
-      float pressure;
-      float accelX;
-      float accelY;
-      float accelZ;
-      ::memcpy(&pressure, buf, sizeof(float));
-      ::memcpy(&accelX, buf + sizeof(float), sizeof(float));
-      ::memcpy(&accelY, buf + sizeof(float) * 2, sizeof(float));
-      ::memcpy(&accelZ, buf + sizeof(float) * 3, sizeof(float));
+  uint8_t buf[sizeof(float) * 4];
+  ::memcpy(buf, &pres, sizeof(float));
+  ::memcpy(buf + sizeof(float), &accelX, sizeof(float));
+  ::memcpy(buf + sizeof(float) * 2, &accelY, sizeof(float));
+  ::memcpy(buf + sizeof(float) * 3, &accelZ, sizeof(float));
 
-      elevatorPressure = pressure;
-      elevatorAccelX = accelX;
-      elevatorAccelY = accelY;
-      elevatorAccelZ = accelZ;
-
-    } else {
-      SerialUSB.println("> Recieve failed!");
-      return;
-    }
-
-    float lobbyPressure = getPressure(readings);
-
-    SerialUSB.print(millis());
-    SerialUSB.print(" ");
-    SerialUSB.print(lobbyPressure);
-    SerialUSB.print(" ");
-    SerialUSB.print(elevatorPressure); 
-    SerialUSB.print(" ");
-    SerialUSB.print(elevatorAccelX);
-    SerialUSB.print(" ");
-    SerialUSB.print(elevatorAccelY);
-    SerialUSB.print(" ");
-    SerialUSB.print(elevatorAccelZ);
-    SerialUSB.print(" ");
-    SerialUSB.println(getFloorEstimate(elevatorPressure, lobbyPressure));
-  }
-
-  if (millis() - prevPacket > 750) {
-    digitalWrite(PIN_LED_RXL, HIGH);  // This LED is backwards from factory
-    prevPacket = millis();            // No need to keep writing
+  rf95.send(buf, sizeof(buf));
+  rf95.waitPacketSent();
+  
+  if (debug) {
+    SerialUSB.print("> Elevator: transmitting (");
+    SerialUSB.print(pres);
+    SerialUSB.print("f, ");
+    SerialUSB.print(accelX);
+    SerialUSB.print("f, ");
+    SerialUSB.print(accelY);
+    SerialUSB.print("f, ");
+    SerialUSB.print(accelZ);
+    SerialUSB.print("f) Total: ");
+    SerialUSB.println(getAcceleration());
   }
 }
+
 
 float getPressure(int r) {
   float sum = 0;
   for (int i = 0; i < r; i++) {
     if (!bmp.performReading()) {
-      SerialUSB.println("> Lobby: BMP reading failed!");
+      SerialUSB.println("> Elevator: BMP reading failed!");
     }
     sum += bmp.readPressure();
   }
   return sum / r;
 }
 
-int getFloorEstimate(float elevatorPressure, float lobbyPressure) {
-  // Higher difference == Lower Floor
-  float diff = lobbyPressure - elevatorPressure;
-  // float diff = elevatorPressure - lobbyPressure;
-  if (diff > 129.24) { return 1; }
-  else if (diff > 87.65) { return 2; }
-  else if (diff > 46.38) { return 3; } 
-  else if (diff > 9.89) { return 4; }
-  else if (diff > -27.14) { return 5; }
-  else if (diff > -67.07) { return 6; }
-  else { return 7; }
+
+float getAcceleration() {
+  bma.getSensorData();
+  return sqrt(sq(bma.data.accelX) + sq(bma.data.accelY) + sq(bma.data.accelZ));
 }
