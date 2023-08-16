@@ -77,17 +77,17 @@ int DataGetter::getFloor() {
 	update();
 	float diff = lobbyPressure - elevatorPressure;
 
-	if (diff > 129.24) {
+	if (diff > 74) {
 		return 1;
-	} else if (diff > 87.65) {
+	} else if (diff > 33) {
 		return 2;
-	} else if (diff > 46.38) {
+	} else if (diff > -5.5) {
 		return 3;
-	} else if (diff > 9.89) {
+	} else if (diff > -45) {
 		return 4;
-	} else if (diff > -27.14) {
+	} else if (diff > -84) {
 		return 5;
-	} else if (diff > -67.07) {
+	} else if (diff > -123.5) {
 		return 6;
 	} else {
 		return 7;
